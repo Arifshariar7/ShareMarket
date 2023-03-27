@@ -1,0 +1,42 @@
+{% extends 'company/base.html' %}
+
+{% block title %}
+    Home - My Django App
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h1>Welcome to My Django App!</h1>
+                <p>This is the homepage.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Popular Themes
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for theme in popular_themes %}
+                        <li class="list-group-item">
+                            <a href="/magic-formula/">{{ theme.title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        $(function() {
+            // Toggle Popular Themes card when clicked
+            $('#popular-themes-card').on('click', function() {
+                $(this).toggleClass('collapsed');
+            });
+        });
+    </script>
+{% endblock %}
