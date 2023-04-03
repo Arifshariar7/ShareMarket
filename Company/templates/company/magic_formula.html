@@ -11,7 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <div class="table-responsive">
-  <table class="table table-striped">
+  <table class="table table-bordered table-sm table-striped m-5px">
     <thead>
       <tr>
         <th>Name</th>
@@ -22,6 +22,15 @@
         <th>Operating Profit</th>
         <th>ROE%</th>
         <th>Score 1</th>
+        <th>Income Tax</th>
+        <th>Interest</th>
+        <th>Long Term Debt</th>
+        <th>Short Term Debt</th>
+        <th>ROCE%</th>
+        <th>Score 2</th>
+
+
+
 
       </tr>
     </thead>
@@ -42,6 +51,17 @@
 
         <td>{{ company.ROE }}</td>
         <td>{{ company.score1 }}</td>
+        {% with report=company.yearly_reports.first %}
+        <td>{{ report.income_tax }}</td>
+        <td>{{ report.interest }}</td>
+        <td>{{ report.long_term_debt }}</td>
+        <td>{{ report.short_term_debt }}</td>
+ 
+      {% endwith %}
+    <!-- <td>{{ company.yearly_reports.Npat }}</td> -->
+    <td>{{ company.ROCE }}</td>
+        
+        <td>{{ company.score2 }}</td>
 
       </tr>
       {% empty %}

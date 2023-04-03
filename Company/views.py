@@ -22,7 +22,11 @@ def home(request):
 
 def magic_formula(request):
     # stocks = Stock.objects.order_by('-mf_rank')
-    subquery = Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('npat')[:1]
+    subquery= Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('npat')[:1]
+    income_tax_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('income_tax')[:1]
+    interest_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('interest')[:1]
+    long_term_debt_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('long_term_debt')[:1]
+    short_term_debt_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('short_term_debt')[:1]
 
     companies = Company.objects.all().annotate(
         ROE=Round(
@@ -33,8 +37,25 @@ def magic_formula(request):
         )
     ).order_by('-ROE')
 
-    score = 1
+    
+    companies = companies.annotate(
+        ROCE=Round(
+            (Subquery(
+                subquery
+            )+(income_tax_query)+(interest_query) / (F('shareholders_equity')+(long_term_debt_query)+(short_term_debt_query))) * 100, 
+            3
+        )
+    ).order_by('-ROCE')
+    companies.order_by('-ROE')
+    score1 = 1
     for company in companies:
-        company.score1 = score
-        score += 1    
+        company.score1 = score1
+        score1 += 1   
+
+    companies.order_by('-ROCE')
+
+    score2 = 1
+    for company in companies:
+        company.score2 = score2
+        score2 += 1    
     return render(request, 'company/magic_formula.html', {'companies':companies})

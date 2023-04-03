@@ -50,13 +50,20 @@ class Yearly(models.Model):
     short_term_debt = models.FloatField()
     cash_and_cash_eq = models.FloatField()
     eps = models.FloatField()
+    def __str__(self) :
+        return self.company.name
+
 
 class Daily(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='daily_reports')
     timeline = models.DateTimeField()
     ltp = models.FloatField()
+    def __str__(self) :
+        return self.company.name
 
 class Quarter(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='quarter_reports')
     quarter_name = models.CharField(max_length=255)
     eps_annual = models.FloatField()
+    def __str__(self) :
+        return self.company.name
