@@ -6,7 +6,7 @@ from django.shortcuts import render
 # Create your views here.
 from django.shortcuts import render
 
-from .models import Company,Yearly
+from .models import Company,Yearly, Daily
 from django.db.models import F,Subquery, OuterRef
 from django.db.models.functions import Round,RowNumber
 
@@ -27,7 +27,10 @@ def magic_formula(request):
     interest_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('interest')[:1]
     long_term_debt_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('long_term_debt')[:1]
     short_term_debt_query=Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('short_term_debt')[:1]
+    cash_and_cash_eq = Yearly.objects.filter(company_id=OuterRef('pk')).order_by('id').values('cash_and_cash_eq')[:1]
+    ltp = Daily.objects.filter(company_id=OuterRef('pk')).order_by('id').values('ltp')[:1]
 
+    companies_list = []
     companies = Company.objects.all().annotate(
         ROE=Round(
             (Subquery(
@@ -37,25 +40,58 @@ def magic_formula(request):
         )
     ).order_by('-ROE')
 
-    
-    companies = companies.annotate(
-        ROCE=Round(
-            (Subquery(
-                subquery
-            )+(income_tax_query)+(interest_query) / (F('shareholders_equity')+(long_term_debt_query)+(short_term_debt_query))) * 100, 
-            3
-        )
-    ).order_by('-ROCE')
-    companies.order_by('-ROE')
     score1 = 1
     for company in companies:
         company.score1 = score1
+        companies_list.append(company)
         score1 += 1   
+        
+    companies = Company.objects.filter(id__in=[company.id for company in companies_list]).annotate(
+        ROCE=Round(
+            (((Subquery(
+                subquery
+            )+(income_tax_query)+(interest_query)) / ((F('shareholders_equity')+(long_term_debt_query)+(short_term_debt_query))))) * 100, 
+            3
+        )
+    )
 
-    companies.order_by('-ROCE')
-
+        # create a new list of companies and assign the score2 attribute
+        # companies_list = []
     score2 = 1
+    companies_list_final = []
     for company in companies:
+        for c in companies_list:
+            if c.id == company.id:
+                company.score1 = c.score1
+                company.ROE=c.ROE
         company.score2 = score2
-        score2 += 1    
+        companies_list_final.append(company)
+        score2 += 1
+        # order by ROE and ROCE
+    companies_list = companies_list_final
+    companies = Company.objects.filter(id__in=[company.id for company in companies_list]).annotate(
+    MARKET_CAP=Round(
+        (Subquery(cash_and_cash_eq) * Subquery(ltp)) , 
+        3
+    )
+)
+    companies_list_final = []
+    score3=1
+    for company in companies:
+        for c in companies_list:
+            if c.id == company.id:
+                company.score1 = c.score1
+                company.score2 = c.score2
+                company.ROE=c.ROE
+                company.ROCE = c.ROCE
+        company.score3 = score3
+        companies_list_final.append(company)
+        score3 += 1
+        # order by ROE and ROCE
+    companies_list = companies_list_final
+
+    companies = sorted(companies_list_final, key=lambda x: (x.score1+x.score2+x.score3))
+
+        # assign the final queryset to the list
+        # companies = companies_list 
     return render(request, 'company/magic_formula.html', {'companies':companies})

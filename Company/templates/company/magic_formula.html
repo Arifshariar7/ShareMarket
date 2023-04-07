@@ -28,6 +28,12 @@
         <th>Short Term Debt</th>
         <th>ROCE%</th>
         <th>Score 2</th>
+        <th>Cash & EQ</th>
+        <th>LTP</th>
+        <th>Score 3</th>
+
+
+
 
 
 
@@ -59,9 +65,20 @@
  
       {% endwith %}
     <!-- <td>{{ company.yearly_reports.Npat }}</td> -->
-    <td>{{ company.ROCE }}</td>
+        <td>{{ company.ROCE }}</td>
         
         <td>{{ company.score2 }}</td>
+        {% with report=company.yearly_reports.first %}
+          <td>{{ report.cash_and_cash_eq }}</td>
+
+        {% endwith %}
+
+        {% with report=company.daily_reports.first %}
+        <td>{{ report.ltp }}</td>
+
+      {% endwith %}
+
+  <td>{{ company.score3 }}</td>
 
       </tr>
       {% empty %}
