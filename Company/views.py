@@ -71,10 +71,10 @@ def magic_formula(request):
     companies_list = companies_list_final
     companies = Company.objects.filter(id__in=[company.id for company in companies_list]).annotate(
     MARKET_CAP=Round(
-        (Subquery(cash_and_cash_eq) * Subquery(ltp)) , 
+        ( Subquery(ltp)) , 
         3
     )
-)
+).order_by('-MARKET_CAP')
     companies_list_final = []
     score3=1
     for company in companies:
@@ -84,13 +84,42 @@ def magic_formula(request):
                 company.score2 = c.score2
                 company.ROE=c.ROE
                 company.ROCE = c.ROCE
+                company.MARKET_CAP *=company.total_share  
         company.score3 = score3
         companies_list_final.append(company)
         score3 += 1
+
+    
         # order by ROE and ROCE
     companies_list = companies_list_final
+    companies = Company.objects.filter(id__in=[company.id for company in companies_list]).annotate(
+    Enterprise_Value=Round((
+        Subquery(long_term_debt_query)+Subquery(short_term_debt_query))-Subquery(cash_and_cash_eq) , 
+        3
+    )
+).order_by('-Enterprise_Value')
+    companies_list_final = []
+    score4=1
+    for company in companies:
+        for c in companies_list:
+            if c.id == company.id:
+                company.score1 = c.score1
+                company.score2 = c.score2
+                company.score3 = c.score3
+                company.ROE=c.ROE
+                company.ROCE = c.ROCE
+                company.MARKET_CAP = c.MARKET_CAP
+                company.Enterprise_Value+=company.MARKET_CAP
+                company.Acquirer_Multiple = company.Enterprise_Value/(Yearly.objects.get(company=company.id).operating_profit)
+                company.eps = 
 
-    companies = sorted(companies_list_final, key=lambda x: (x.score1+x.score2+x.score3))
+        company.score4 = score4
+        companies_list_final.append(company)
+        score4+= 1
+
+
+
+    companies = sorted(companies_list_final, key=lambda x: (x.score1+x.score2+x.score3+score4))
 
         # assign the final queryset to the list
         # companies = companies_list 

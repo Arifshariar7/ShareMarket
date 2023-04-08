@@ -31,6 +31,13 @@
         <th>Cash & EQ</th>
         <th>LTP</th>
         <th>Score 3</th>
+        <th>MARKET CAP</th>
+        <th>Enterprice Value</th>
+        <th>Acquire Multiplayer</th>
+        <th>Score4</th>
+        <th>EPS</th>
+        <th>EPS Annual</th>
+
 
 
 
@@ -79,7 +86,10 @@
       {% endwith %}
 
   <td>{{ company.score3 }}</td>
-
+  <td>{{ company.MARKET_CAP }}</td>
+  <td>{{ company.Enterprise_Value }}</td>
+  <td>{{ company.Acquirer_Multiple }}</td>
+  <td>{{ company.score4 }}</td>
       </tr>
       {% empty %}
       <tr>
